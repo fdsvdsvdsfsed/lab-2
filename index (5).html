@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab 2 YOUR_NAME</title>
+</head>
+<body>
+
+    <button onclick="allName()">All Names</button><br><br>
+    <button onclick="catsHealth()">Health Issues</button>
+    <input type="number" id="healthInput"><br>
+    <input type="radio" name="unit" value="Imperial"> Imperial 
+    <input type="radio" name="unit" value="Metric"> Metric 
+    <button onclick="displayWeight()">Weight</button><br><br>
+    <button onclick="intelligenceFriendly()">Intelligence-Friendly</button><br><br>
+    <button onclick="averageIntelligence()">Average Intelligence</button><br><br>
+    <button onclick="averageIntelligenceForChildFriendly()">Average Intelligence for Child Friendly</button><br>
+
+    <div id="res"></div>
+
+    <script>
+        const jsonUrl = 'https://api.thecatapi.com/v1/breeds';
+        const jsonContentElement = document.getElementById('res');
+
+        function fetchData(callback) {
+            jsonContentElement.innerHTML = "";
+            fetch(jsonUrl)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Something went wrong.');
+                    }
+                    return response.json();
+                })
+                .then(data => callback(data))
+                .catch(error => {
+                    console.error('Error fetching JSON:', error);
+                });
+        }
+
+        function allName() {
+            fetchData(data => {
+                data.forEach(breed => {
+                    const lineBreak = document.createElement('br');
+                    jsonContentElement.appendChild(document.createTextNode(breed.name));
+                    jsonContentElement.appendChild(lineBreak);
+                });
+            });
+        }
+        function catsHealth(){
+            const healthInput = document.getElementById('healthInput').value;
+            const resultElement = document.getElementById('res');  // Changed this line
+            resultElement.innerHTML = "";
+            const jsonUrl = 'https://api.thecatapi.com/v1/breeds';
+            fetch(jsonUrl)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Something went wrong.');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const filteredCats = data.filter(cat => cat.health_issues === parseInt(healthInput));
+                    if (filteredCats.length == 0) {
+                        resultElement.textContent = "No cats found with that health issue.";
+                    } else {
+                        filteredCats.forEach(cat => {
+                            const lineBreak = document.createElement('br');
+                            resultElement.appendChild(document.createTextNode(cat.name));
+                            resultElement.appendChild(lineBreak);
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching JSON:', error);
+                });
+        }
+        function intelligenceFriendly() {
+    fetchData(data => {
+        const table = document.createElement('table');
+        const headerRow = table.insertRow();
+        const headerCell1 = headerRow.insertCell();
+        const headerCell2 = headerRow.insertCell();
+        headerCell1.innerHTML = '<b>I</b>';
+        headerCell2.innerHTML = '<b>F</b>';
+
+        data.forEach(breed => {
+            const row = table.insertRow();
+            const cell1 = row.insertCell();
+            const cell2 = row.insertCell();
+            cell1.innerHTML = breed.intelligence;
+            cell2.innerHTML = breed.child_friendly;
+        });
+
+        jsonContentElement.appendChild(table);
+    });
+}
+function displayWeight() {
+            const unit = document.querySelector('input[name="unit"]:checked').value;
+            fetchData(data => {
+                data.forEach(breed => {
+                    let weightRange;
+                    if (unit == 'Imperial') {
+                        weightRange = breed.weight.imperial;
+                    } else {
+                        const [minImperial, maxImperial] = breed.weight.imperial.split(' - ');
+                        const minMetric = (parseFloat(minImperial) * 0.453592).toFixed(2);
+                        const maxMetric = (parseFloat(maxImperial) * 0.453592).toFixed(2);
+                        weightRange = `${minMetric} - ${maxMetric} kg`;
+                    }
+                    const lineBreak = document.createElement('br');
+                    jsonContentElement.appendChild(document.createTextNode(`${breed.name}: ${weightRange}`));
+                    jsonContentElement.appendChild(lineBreak);
+                });
+            });
+        }
+
+
+        function averageIntelligence() {
+            fetchData(data => {
+                const totalIntelligence = data.reduce((sum, breed) => sum + breed.intelligence, 0);
+                const averageIntelligence = totalIntelligence / data.length;
+                jsonContentElement.appendChild(document.createTextNode(`Average Intelligence: ${averageIntelligence.toFixed(2)}`));
+            });
+        }
+
+        function averageIntelligenceForChildFriendly() {
+            fetchData(data => {
+                const childFriendlyBreeds = data.filter(breed => breed.child_friendly === 4);
+                const totalIntelligence = childFriendlyBreeds.reduce((sum, breed) => sum + breed.intelligence, 0);
+                const averageIntelligence = totalIntelligence / childFriendlyBreeds.length;
+                jsonContentElement.appendChild(document.createTextNode(`Average Intelligence for Child Friendly: ${averageIntelligence.toFixed(2)}`));
+            });
+        }
+    </script>
+
+</body>
+</html>
