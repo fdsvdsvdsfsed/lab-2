@@ -32,6 +32,7 @@
                     }
                     return response.json();
                 })
+                
                 .then(data => callback(data))
                 .catch(error => {
                     console.error('Error fetching JSON:', error);
@@ -61,6 +62,7 @@
                 })
                 .then(data => {
                     const filteredCats = data.filter(cat => cat.health_issues === parseInt(healthInput));
+                    
                     if (filteredCats.length == 0) {
                         resultElement.textContent = "No cats found with that health issue.";
                     } else {
@@ -97,6 +99,11 @@
 }
 function displayWeight() {
             const unit = document.querySelector('input[name="unit"]:checked').value;
+            if (selectedUnit === 'metric') {
+        weightsElement.innerHTML = "Weight in Metric:<br>";
+    } else {
+        weightsElement.innerHTML = "Weight in Imperial:<br>";
+    }
             fetchData(data => {
                 data.forEach(breed => {
                     let weightRange;
@@ -104,12 +111,12 @@ function displayWeight() {
                         weightRange = breed.weight.imperial;
                     } else {
                         const [minImperial, maxImperial] = breed.weight.imperial.split(' - ');
-                        const minMetric = (parseFloat(minImperial) * 0.453592).toFixed(2);
-                        const maxMetric = (parseFloat(maxImperial) * 0.453592).toFixed(2);
-                        weightRange = `${minMetric} - ${maxMetric} kg`;
+                        const minMetric = parseFloat(minImperial).toFixed(2);
+                        const maxMetric = parseFloat(maxImperial) .toFixed(2);
+                        weightRange = `${minMetric} - ${maxMetric} `;
                     }
                     const lineBreak = document.createElement('br');
-                    jsonContentElement.appendChild(document.createTextNode(`${breed.name}: ${weightRange}`));
+                    jsonContentElement.appendChild(document.createTextNode(`${weightRange}`));
                     jsonContentElement.appendChild(lineBreak);
                 });
             });
